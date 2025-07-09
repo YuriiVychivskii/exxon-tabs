@@ -24,13 +24,13 @@
 ## Запуск проєкту
 
 1. Встановіть залежності:
-   ```bash
+```bash
    npm install
    # або
    yarn install
 
 2. Запустіть локальний сервер розробки:
 ```bash
-npm run dev
-# або
-yarn dev
+   npm run dev
+   # або
+   yarn dev
