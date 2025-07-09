@@ -6,7 +6,7 @@ import { CSS } from '@dnd-kit/utilities';
 import clsx from 'clsx';
 import Image from 'next/image';
 import { useState } from 'react';
-import { Tooltip } from './tooltip'; // окремий файл
+import { Tooltip } from './tooltip'; // припускаю, що це окремий компонент
 
 type TabProps = {
 	props: TabType;
@@ -17,12 +17,38 @@ export default function Tab({ props, isActive }: TabProps) {
 	const [isTooltipVisible, setIsTooltipVisible] = useState(false);
 	const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
 
-	const { attributes, listeners, setNodeRef, transform, transition } =
-		useSortable({ id: props.id });
-
-	const styles = {
+	const {
+		attributes,
+		listeners,
+		setNodeRef,
+		transform,
 		transition,
+		isDragging,
+	} = useSortable({
+		id: props.id,
+		data: {
+			tab: props,
+			sortable: {
+				containerId: 'visible', // або 'overflow'
+			},
+		},
+	});
+
+	const style = {
 		transform: CSS.Transform.toString(transform),
+		transition,
+	};
+
+	const handleMouseEnter = () => {
+		if (!isDragging) {
+			setIsTooltipVisible(true);
+		}
+	};
+
+	const handleMouseLeave = () => {
+		if (!isDragging) {
+			setIsTooltipVisible(false);
+		}
 	};
 
 	const handleMouseMove = (e: React.MouseEvent) => {
@@ -34,16 +60,17 @@ export default function Tab({ props, isActive }: TabProps) {
 			ref={setNodeRef}
 			{...attributes}
 			{...listeners}
-			style={styles}
-			onMouseEnter={() => setIsTooltipVisible(true)}
-			onMouseLeave={() => setIsTooltipVisible(false)}
+			style={style}
+			onMouseEnter={handleMouseEnter}
+			onMouseLeave={handleMouseLeave}
 			onMouseMove={handleMouseMove}
 			className={clsx(
-				'relative cursor-pointer flex items-center gap-2.5 py-2.5 px-4 select-none',
-				isActive
+				'relative flex items-center gap-2.5 py-2.5 px-4 select-none transition-colors cursor-pointer',
+				isDragging
+					? 'bg-gray-400 text-white z-50'
+					: isActive
 					? 'bg-[var(--color-gray-light)] text-black'
-					: 'text-[var(--color-gray-medium)]',
-				'hover:bg-[var(--color-gray-light)]'
+					: 'text-[var(--color-gray-medium)] hover:bg-[var(--color-gray-light)]'
 			)}
 		>
 			{isActive && (
@@ -53,7 +80,7 @@ export default function Tab({ props, isActive }: TabProps) {
 			<Image src={props.icon} alt={props.title} width={16} height={16} />
 			<div className='text-lg'>{props.title}</div>
 
-			{isTooltipVisible && !props.pinned && (
+			{isTooltipVisible && !props.pinned && !isDragging && (
 				<Tooltip x={mousePosition.x} y={mousePosition.y} />
 			)}
 		</div>
